@@ -2,8 +2,11 @@ import CoreLocation
 import Foundation
 
 /// Wraps CLLocationManager for one-shot location requests and geocoding search.
+/// @MainActor ensures all property access is thread-safe; @preconcurrency suppresses
+/// Swift 6 Sendable warnings on the Obj-C delegate protocol.
 @Observable
-final class LocationService: NSObject, CLLocationManagerDelegate {
+@MainActor
+final class LocationService: NSObject, @preconcurrency CLLocationManagerDelegate {
     var lastLocation: CLLocationCoordinate2D?
     var authStatus: CLAuthorizationStatus = .notDetermined
     var error: String?
@@ -38,32 +41,26 @@ final class LocationService: NSObject, CLLocationManagerDelegate {
 
     // MARK: - CLLocationManagerDelegate
 
-    nonisolated func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         let coord = locations.first?.coordinate
-        Task { @MainActor in
-            self.lastLocation = coord
-            self.continuation?.resume(returning: coord)
-            self.continuation = nil
-        }
+        lastLocation = coord
+        continuation?.resume(returning: coord)
+        continuation = nil
     }
 
-    nonisolated func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-        Task { @MainActor in
-            self.error = error.localizedDescription
-            self.continuation?.resume(returning: nil)
-            self.continuation = nil
-        }
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        self.error = error.localizedDescription
+        continuation?.resume(returning: nil)
+        continuation = nil
     }
 
-    nonisolated func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
-        Task { @MainActor in
-            self.authStatus = manager.authorizationStatus
-        }
+    func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        authStatus = manager.authorizationStatus
     }
 
     // MARK: - Geocoding (search by name/ZIP)
 
-    struct GeoResult: Identifiable {
+    struct GeoResult: Identifiable, Sendable {
         let id = UUID()
         let name: String
         let lat: Double

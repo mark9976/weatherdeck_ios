@@ -68,7 +68,7 @@ struct WindCompassView: View {
 struct WindArrow: Shape {
     func path(in rect: CGRect) -> Path {
         let midX = rect.midX
-        Path { p in
+        return Path { p in
             p.move(to: CGPoint(x: midX, y: rect.minY))       // tip
             p.addLine(to: CGPoint(x: midX + 8, y: rect.midY)) // right wing
             p.addLine(to: CGPoint(x: midX, y: rect.midY - 8)) // notch
