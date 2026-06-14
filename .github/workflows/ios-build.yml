@@ -1,0 +1,59 @@
+name: Build iOS App
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_16.2.app
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Build
+        run: |
+          xcodebuild build \
+            -project WeatherDeck.xcodeproj \
+            -scheme WeatherDeck \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+            -configuration Release \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            | tail -30
+
+      - name: Archive build artifact
+        if: success()
+        run: |
+          xcodebuild build \
+            -project WeatherDeck.xcodeproj \
+            -scheme WeatherDeck \
+            -destination 'generic/platform=iOS Simulator' \
+            -configuration Release \
+            -derivedDataPath build \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO
+          # Package the .app for download
+          cd build/Build/Products/Release-iphonesimulator
+          zip -r ../../../../WeatherDeck-sim.zip WeatherDeck.app
+
+      - name: Upload artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: WeatherDeck-Simulator
+          path: WeatherDeck-sim.zip
+          retention-days: 30
