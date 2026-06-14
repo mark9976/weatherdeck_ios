@@ -14,7 +14,10 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Select Xcode
-        run: sudo xcode-select -s /Applications/Xcode_16.2.app
+        run: |
+          sudo xcode-select -s /Applications/Xcode_16.2.app
+          xcodebuild -version
+          xcodebuild -showsdks | grep -i ios
 
       - name: Install XcodeGen
         run: brew install xcodegen
@@ -27,26 +30,16 @@ jobs:
           xcodebuild build \
             -project WeatherDeck.xcodeproj \
             -scheme WeatherDeck \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
-            -configuration Release \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO \
-            | tail -30
-
-      - name: Archive build artifact
-        if: success()
-        run: |
-          xcodebuild build \
-            -project WeatherDeck.xcodeproj \
-            -scheme WeatherDeck \
-            -destination 'generic/platform=iOS Simulator' \
+            -sdk iphonesimulator \
             -configuration Release \
             -derivedDataPath build \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO
-          # Package the .app for download
+
+      - name: Package artifact
+        if: success()
+        run: |
           cd build/Build/Products/Release-iphonesimulator
           zip -r ../../../../WeatherDeck-sim.zip WeatherDeck.app
 
