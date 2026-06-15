@@ -97,8 +97,22 @@ jobs:
           APPSTORE_PRIVATE_KEY: ${{ secrets.APPSTORE_PRIVATE_KEY }}
         run: |
           mkdir -p ~/private_keys
-          echo -n "$APPSTORE_PRIVATE_KEY" > ~/private_keys/AuthKey_${APPSTORE_KEY_ID}.p8
+          printenv APPSTORE_PRIVATE_KEY > ~/private_keys/AuthKey_${APPSTORE_KEY_ID}.p8
           xcrun altool --upload-app \
             -f $RUNNER_TEMP/export/WeatherDeck.ipa \
             -t ios \
-            --apiKey "$APPSTORE_
+            --apiKey "$APPSTORE_KEY_ID" \
+            --apiIssuer "$APPSTORE_ISSUER_ID" \
+            --show-progress
+
+      - name: Upload artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: WeatherDeck-IPA
+          path: ${{ runner.temp }}/export/WeatherDeck.ipa
+          retention-days: 30
+
+      - name: Cleanup keychain
+        if: always()
+        run: security delete-keychain $RUNNER_TEMP/app-signing.keychain-db || true
