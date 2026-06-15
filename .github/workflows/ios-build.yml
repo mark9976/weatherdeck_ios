@@ -34,14 +34,61 @@ jobs:
         run: |
           echo "BUILD_NUMBER=${{ github.run_number }}" >> $GITHUB_ENV
 
+      - name: Generate app icon
+        run: |
+          pip3 install Pillow --break-system-packages -q
+          python3 << 'PYEOF'
+          from PIL import Image, ImageDraw
+          import json, os
+          W, H = 1024, 1024
+          img = Image.new('RGB', (W, H))
+          draw = ImageDraw.Draw(img)
+          for y in range(H):
+              t = y / H
+              r = int(11 + (20 - 11) * t)
+              g = int(15 + (27 - 15) * t)
+              b = int(20 + (36 - 20) * t)
+              draw.line([(0, y), (W, y)], fill=(r, g, b))
+          for radius in range(320, 0, -2):
+              a = int(30 * (1 - radius / 320))
+              draw.ellipse([W//2-radius, H//2-radius+40, W//2+radius, H//2+radius+40],
+                           fill=(29+a, 70+a, 180+a//2))
+          cc = (100, 120, 145)
+          draw.ellipse([240,160,560,380], fill=cc)
+          draw.ellipse([380,120,780,360], fill=cc)
+          draw.ellipse([180,220,480,400], fill=cc)
+          draw.ellipse([500,180,760,380], fill=cc)
+          draw.rectangle([200,300,760,380], fill=cc)
+          hl = (130, 150, 175)
+          draw.ellipse([280,170,540,340], fill=hl)
+          draw.ellipse([420,140,720,320], fill=hl)
+          draw.polygon([(480,320),(380,540),(460,540),(400,820),(600,500),(520,500),(580,320)],
+                       fill=(255,220,60))
+          draw.polygon([(490,350),(410,530),(470,530),(420,780),(570,510),(520,510),(560,350)],
+                       fill=(255,255,180))
+          for dx, dy in [(280,420),(340,460),(650,430),(710,470),(300,520),(680,540)]:
+              draw.ellipse([dx-6,dy-6,dx+6,dy+12], fill=(80,160,230))
+          d = 'WeatherDeck/Assets.xcassets/AppIcon.appiconset'
+          img.save(os.path.join(d, 'AppIcon.png'), 'PNG')
+          json.dump({
+              "images": [{"filename":"AppIcon.png","idiom":"universal","platform":"ios","size":"1024x1024"}],
+              "info": {"version":1,"author":"xcode"}
+          }, open(os.path.join(d, 'Contents.json'), 'w'), indent=2)
+          print('Icon generated')
+          PYEOF
+
       - name: Generate Xcode project
         run: xcodegen generate
 
-      - name: Inject build number into Info.plist
+      - name: Inject build number and icon name into Info.plist
         run: |
           /usr/libexec/PlistBuddy -c "Add :CFBundleVersion string ${{ env.BUILD_NUMBER }}" WeatherDeck/Info.plist 2>/dev/null || \
           /usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${{ env.BUILD_NUMBER }}" WeatherDeck/Info.plist
-          echo "Build number set to ${{ env.BUILD_NUMBER }}"
+          /usr/libexec/PlistBuddy -c "Add :CFBundleIconName string AppIcon" WeatherDeck/Info.plist 2>/dev/null || \
+          /usr/libexec/PlistBuddy -c "Set :CFBundleIconName AppIcon" WeatherDeck/Info.plist
+          echo "Build number: ${{ env.BUILD_NUMBER }}"
+          echo "Info.plist contents:"
+          cat WeatherDeck/Info.plist
 
       - name: Install signing certificate
         env:
