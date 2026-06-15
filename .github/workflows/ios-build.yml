@@ -32,9 +32,7 @@ jobs:
           CERT_PATH=$RUNNER_TEMP/distribution.p12
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
           KEYCHAIN_PWD=$(openssl rand -hex 12)
-
           echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode -o $CERT_PATH
-
           security create-keychain -p "$KEYCHAIN_PWD" $KEYCHAIN_PATH
           security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
           security unlock-keychain -p "$KEYCHAIN_PWD" $KEYCHAIN_PATH
@@ -48,7 +46,6 @@ jobs:
         run: |
           PP_PATH=$RUNNER_TEMP/weatherdeck.mobileprovision
           echo -n "$BUILD_PROVISION_PROFILE_BASE64" | base64 --decode -o $PP_PATH
-
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" /dev/stdin <<< $(security cms -D -i $PP_PATH))
           cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/$UUID.mobileprovision
@@ -88,13 +85,12 @@ jobs:
           </dict>
           </plist>
           PLIST
-
           xcodebuild -exportArchive \
             -archivePath $RUNNER_TEMP/WeatherDeck.xcarchive \
             -exportPath $RUNNER_TEMP/export \
             -exportOptionsPlist $RUNNER_TEMP/ExportOptions.plist
 
- - name: Upload to TestFlight
+      - name: Upload to TestFlight
         env:
           APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
           APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
@@ -102,36 +98,7 @@ jobs:
         run: |
           mkdir -p ~/private_keys
           echo -n "$APPSTORE_PRIVATE_KEY" > ~/private_keys/AuthKey_${APPSTORE_KEY_ID}.p8
-
           xcrun altool --upload-app \
             -f $RUNNER_TEMP/export/WeatherDeck.ipa \
             -t ios \
-            --apiKey "$APPSTORE_KEY_ID" \
-            --apiIssuer "$APPSTORE_ISSUER_ID" \
-            --show-progress- name: Upload to TestFlight
-        env:
-          APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
-          APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
-          APPSTORE_PRIVATE_KEY: ${{ secrets.APPSTORE_PRIVATE_KEY }}
-        run: |
-          mkdir -p ~/private_keys
-          echo -n "$APPSTORE_PRIVATE_KEY" > ~/private_keys/AuthKey_${APPSTORE_KEY_ID}.p8
-
-          xcrun altool --upload-app \
-            -f $RUNNER_TEMP/export/WeatherDeck.ipa \
-            -t ios \
-            --apiKey "$APPSTORE_KEY_ID" \
-            --apiIssuer "$APPSTORE_ISSUER_ID" \
-            --show-progress
-
-      - name: Upload artifact
-        if: success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: WeatherDeck-IPA
-          path: ${{ runner.temp }}/export/WeatherDeck.ipa
-          retention-days: 30
-
-      - name: Cleanup keychain
-        if: always()
-        run: security delete-keychain $RUNNER_TEMP/app-signing.keychain-db || true
+            --apiKey "$APPSTORE_
