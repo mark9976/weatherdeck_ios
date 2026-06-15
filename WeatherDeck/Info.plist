@@ -3,13 +3,13 @@
 <plist version="1.0">
 <dict>
     <key>CFBundleDisplayName</key>
-    <string>JustWeather</string>
+    <string>RawWeather</string>
     <key>CFBundleShortVersionString</key>
     <string>1.0</string>
     <key>CFBundleIconName</key>
     <string>AppIcon</string>
     <key>NSLocationWhenInUseUsageDescription</key>
-    <string>JustWeather uses your location to show local weather conditions, forecasts, and radar.</string>
+    <string>RawWeather uses your location to show local weather conditions, forecasts, and radar.</string>
     <key>UILaunchScreen</key>
     <dict/>
 </dict>
