@@ -8,6 +8,8 @@
     <string>1.0</string>
     <key>CFBundleVersion</key>
     <string>1</string>
+    <key>CFBundleIconName</key>
+    <string>AppIcon</string>
     <key>NSLocationWhenInUseUsageDescription</key>
     <string>WeatherDeck uses your location to show local weather conditions, forecasts, and radar.</string>
     <key>UILaunchScreen</key>

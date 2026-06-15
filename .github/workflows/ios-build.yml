@@ -13,13 +13,48 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Show Xcode info
+      - name: Select Xcode
         run: |
+          ls -d /Applications/Xcode*.app
+          if [ -d "/Applications/Xcode_26.0.app" ]; then
+            sudo xcode-select -s /Applications/Xcode_26.0.app
+          elif [ -d "/Applications/Xcode_26.app" ]; then
+            sudo xcode-select -s /Applications/Xcode_26.app
+          else
+            LATEST=$(ls -d /Applications/Xcode*.app | sort -V | tail -1)
+            echo "Xcode 26 not found, using $LATEST"
+            sudo xcode-select -s "$LATEST"
+          fi
           xcodebuild -version
           xcodebuild -showsdks | grep -i iphoneos
 
       - name: Install XcodeGen
         run: brew install xcodegen
+
+      - name: Generate app icon
+        run: |
+          python3 << 'PYEOF'
+          import struct, zlib, os, json
+          W, H = 1024, 1024
+          R, G, B = 29, 111, 224
+          raw = b''
+          for y in range(H):
+              raw += b'\x00' + bytes([R, G, B]) * W
+          def chunk(ct, d):
+              return struct.pack('>I', len(d)) + ct + d + struct.pack('>I', zlib.crc32(ct + d) & 0xFFFFFFFF)
+          ihdr = struct.pack('>IIBBBBB', W, H, 8, 2, 0, 0, 0)
+          png = b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', ihdr) + chunk(b'IDAT', zlib.compress(raw, 9)) + chunk(b'IEND', b'')
+          icon_dir = 'WeatherDeck/Assets.xcassets/AppIcon.appiconset'
+          with open(os.path.join(icon_dir, 'AppIcon.png'), 'wb') as f:
+              f.write(png)
+          contents = {
+              "images": [{"filename": "AppIcon.png", "idiom": "universal", "platform": "ios", "size": "1024x1024"}],
+              "info": {"version": 1, "author": "xcode"}
+          }
+          with open(os.path.join(icon_dir, 'Contents.json'), 'w') as f:
+              json.dump(contents, f, indent=2)
+          print(f'Icon: {len(png)} bytes')
+          PYEOF
 
       - name: Generate Xcode project
         run: xcodegen generate
