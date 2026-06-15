@@ -26,8 +26,8 @@ targets:
     info:
       path: WeatherDeck/Info.plist
       properties:
-        CFBundleDisplayName: WeatherDeck
+        CFBundleDisplayName: JustWeather
         CFBundleShortVersionString: "1.0"
         CFBundleIconName: AppIcon
-        NSLocationWhenInUseUsageDescription: "WeatherDeck uses your location to show local weather conditions, forecasts, and radar."
+        NSLocationWhenInUseUsageDescription: "JustWeather uses your location to show local weather conditions, forecasts, and radar."
         UILaunchScreen: {}
