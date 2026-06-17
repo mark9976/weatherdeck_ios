@@ -7,6 +7,7 @@ struct ContentView: View {
     @State private var showSearch = false
     @State private var searchResults: [LocationService.GeoResult] = []
     @State private var selectedTab = 0
+    @AppStorage("isDarkMode") private var isDarkMode = true
 
     var body: some View {
         ZStack {
@@ -45,11 +46,10 @@ struct ContentView: View {
                 .tint(Theme.accent)
             }
         }
+        .preferredColorScheme(isDarkMode ? .dark : .light)
         .task { await initialLoad() }
         .sheet(isPresented: $showSearch) { searchSheet }
     }
-
-    // MARK: - Header
 
     private var header: some View {
         HStack(spacing: 12) {
@@ -64,6 +64,17 @@ struct ContentView: View {
                     .foregroundStyle(Theme.muted)
             }
             Spacer()
+
+            Button {
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    isDarkMode.toggle()
+                }
+            } label: {
+                Image(systemName: isDarkMode ? "sun.max.fill" : "moon.fill")
+                    .foregroundStyle(isDarkMode ? Theme.warn : Theme.accent)
+                    .font(.title3)
+            }
+
             Button { showSearch = true } label: {
                 Image(systemName: "magnifyingglass")
                     .foregroundStyle(Theme.accent)
@@ -78,8 +89,6 @@ struct ContentView: View {
         .padding(.vertical, 10)
         .background(Theme.panel)
     }
-
-    // MARK: - Status bar
 
     private var statusBar: some View {
         HStack {
@@ -97,8 +106,6 @@ struct ContentView: View {
         .padding(.vertical, 4)
         .background(Theme.panel2)
     }
-
-    // MARK: - Search sheet
 
     private var searchSheet: some View {
         NavigationStack {
@@ -163,11 +170,9 @@ struct ContentView: View {
                         .foregroundStyle(Theme.accent)
                 }
             }
-            .toolbarColorScheme(.dark, for: .navigationBar)
+            .toolbarColorScheme(isDarkMode ? .dark : .light, for: .navigationBar)
         }
     }
-
-    // MARK: - Actions
 
     private func initialLoad() async {
         if let coord = await location.requestLocation() {
@@ -218,5 +223,4 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
-        .preferredColorScheme(.dark)
 }

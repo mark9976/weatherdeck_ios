@@ -8,7 +8,6 @@ struct WeatherDeckApp: App {
         WindowGroup {
             ZStack {
                 ContentView()
-                    .preferredColorScheme(.dark)
 
                 if showSplash {
                     SplashView {
