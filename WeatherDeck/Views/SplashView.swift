@@ -4,7 +4,6 @@ struct SplashView: View {
     let onFinished: () -> Void
     @State private var opacity: Double = 0
     @State private var scale: Double = 0.8
-    @State private var rotation: Double = 0
 
     var body: some View {
         ZStack {
@@ -13,13 +12,11 @@ struct SplashView: View {
             VStack(spacing: 20) {
                 Spacer()
 
-                // Spinning 3DFurler logo
                 Image("SponsorLogo")
                     .resizable()
                     .scaledToFit()
                     .frame(width: 200, height: 200)
                     .clipShape(Circle())
-                    .rotationEffect(.degrees(rotation))
 
                 Text("This app is Sponsored by")
                     .font(.subheadline)
@@ -31,7 +28,6 @@ struct SplashView: View {
 
                 Spacer()
 
-                // App name at bottom
                 HStack(spacing: 8) {
                     Image(systemName: "bolt.fill")
                         .foregroundStyle(Theme.warn)
@@ -49,10 +45,7 @@ struct SplashView: View {
                 opacity = 1
                 scale = 1
             }
-            withAnimation(.linear(duration: 3.0)) {
-                rotation = 360
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3.5) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
                 withAnimation(.easeIn(duration: 0.4)) {
                     opacity = 0
                 }
