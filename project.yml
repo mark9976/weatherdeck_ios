@@ -27,7 +27,7 @@ targets:
       path: WeatherDeck/Info.plist
       properties:
         CFBundleDisplayName: RawWeather
-        CFBundleShortVersionString: "1.0"
+        CFBundleShortVersionString: "1.1"
         CFBundleIconName: AppIcon
         NSLocationWhenInUseUsageDescription: "RawWeather uses your location to show local weather conditions, forecasts, and radar."
         UILaunchScreen: {}
