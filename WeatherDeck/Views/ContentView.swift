@@ -13,12 +13,9 @@ struct ContentView: View {
             Theme.bg.ignoresSafeArea()
 
             VStack(spacing: 0) {
-                // Top bar
                 header
-                // Status strip
                 statusBar
 
-                // Tabs
                 TabView(selection: $selectedTab) {
                     CurrentView(vm: vm)
                         .tag(0)
@@ -35,6 +32,15 @@ struct ContentView: View {
                     RadarView(vm: vm)
                         .tag(4)
                         .tabItem { Label("Radar", systemImage: "antenna.radiowaves.left.and.right") }
+                    TidesView(vm: vm)
+                        .tag(5)
+                        .tabItem { Label("Tides", systemImage: "water.waves") }
+                    MoonView(vm: vm)
+                        .tag(6)
+                        .tabItem { Label("Moon", systemImage: "moon.stars") }
+                    CurrentsView(vm: vm)
+                        .tag(7)
+                        .tabItem { Label("Currents", systemImage: "arrow.left.arrow.right") }
                 }
                 .tint(Theme.accent)
             }
@@ -99,7 +105,6 @@ struct ContentView: View {
             ZStack {
                 Theme.bg.ignoresSafeArea()
                 VStack(spacing: 0) {
-                    // Search field
                     HStack {
                         Image(systemName: "magnifyingglass")
                             .foregroundStyle(Theme.muted)
@@ -115,7 +120,6 @@ struct ContentView: View {
                     .padding(.horizontal, 16)
                     .padding(.top, 8)
 
-                    // Use current location button
                     Button {
                         Task { await useCurrentLocation() }
                     } label: {
@@ -133,7 +137,6 @@ struct ContentView: View {
                     .padding(.horizontal, 16)
                     .padding(.top, 10)
 
-                    // Results
                     List(searchResults) { result in
                         Button {
                             selectResult(result)
@@ -167,13 +170,11 @@ struct ContentView: View {
     // MARK: - Actions
 
     private func initialLoad() async {
-        // Try GPS first.
         if let coord = await location.requestLocation() {
             vm.lat = coord.latitude
             vm.lon = coord.longitude
             vm.locationName = "Current Location"
         }
-        // Else fall back to Greensburg defaults already set in the VM.
         await vm.loadAll()
     }
 
@@ -181,7 +182,6 @@ struct ContentView: View {
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !query.isEmpty else { return }
 
-        // Check for direct "lat,lon" input.
         let parts = query.split(separator: ",")
         if parts.count == 2,
            let la = Double(parts[0].trimmingCharacters(in: .whitespaces)),
