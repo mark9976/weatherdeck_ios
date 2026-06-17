@@ -7,7 +7,7 @@ struct ContentView: View {
     @State private var showSearch = false
     @State private var searchResults: [LocationService.GeoResult] = []
     @State private var selectedTab = 0
-    @AppStorage("isDarkMode") private var isDarkMode = true
+    @AppStorage("isLightMode") private var isLightMode = false
 
     var body: some View {
         ZStack {
@@ -46,7 +46,7 @@ struct ContentView: View {
                 .tint(Theme.accent)
             }
         }
-        .preferredColorScheme(isDarkMode ? .dark : .light)
+        .preferredColorScheme(isLightMode ? .light : .dark)
         .task { await initialLoad() }
         .sheet(isPresented: $showSearch) { searchSheet }
     }
@@ -67,11 +67,11 @@ struct ContentView: View {
 
             Button {
                 withAnimation(.easeInOut(duration: 0.3)) {
-                    isDarkMode.toggle()
+                    isLightMode.toggle()
                 }
             } label: {
-                Image(systemName: isDarkMode ? "sun.max.fill" : "moon.fill")
-                    .foregroundStyle(isDarkMode ? Theme.warn : Theme.accent)
+                Image(systemName: isLightMode ? "moon.fill" : "sun.max.fill")
+                    .foregroundStyle(isLightMode ? Theme.accent : Theme.warn)
                     .font(.title3)
             }
 
@@ -170,7 +170,7 @@ struct ContentView: View {
                         .foregroundStyle(Theme.accent)
                 }
             }
-            .toolbarColorScheme(isDarkMode ? .dark : .light, for: .navigationBar)
+            .toolbarColorScheme(isLightMode ? .light : .dark, for: .navigationBar)
         }
     }
 

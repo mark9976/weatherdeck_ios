@@ -1,7 +1,9 @@
 import SwiftUI
 
 enum Theme {
-    @AppStorage("isDarkMode") static var isDark: Bool = true
+    static var isDark: Bool {
+        !UserDefaults.standard.bool(forKey: "isLightMode")
+    }
 
     static var bg: Color { isDark ? Color(red: 0.043, green: 0.059, blue: 0.078) : Color(red: 0.95, green: 0.96, blue: 0.97) }
     static var panel: Color { isDark ? Color(red: 0.078, green: 0.106, blue: 0.141) : Color.white }
