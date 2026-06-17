@@ -1,7 +1,5 @@
 import Foundation
 
-/// NOAA CO-OPS Tides and Currents API (https://api.tidesandcurrents.noaa.gov)
-/// Free, no API key required.
 actor NOAAService {
     private let session: URLSession
 
@@ -13,13 +11,11 @@ actor NOAAService {
 
     private let base = "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter"
 
-    // MARK: - Tide Predictions
-
     struct TidePrediction: Codable, Identifiable {
         var id: String { t }
-        let t: String  // timestamp "2026-06-15 04:30"
-        let v: String  // water level
-        let type: String? // "H" high, "L" low (only in hilo)
+        let t: String
+        let v: String
+        let type: String?
     }
 
     struct TideResponse: Codable {
@@ -40,7 +36,6 @@ actor NOAAService {
         }
     }
 
-    /// Find nearest tide prediction stations to a lat/lon.
     func findTideStations(lat: Double, lon: Double) async throws -> [TideStation] {
         let url = "https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations.json?type=tidepredictions&units=english"
         guard let u = URL(string: url) else { return [] }
@@ -59,7 +54,6 @@ actor NOAAService {
         let wrapper = try JSONDecoder().decode(StationsWrapper.self, from: data)
         guard let stations = wrapper.stations else { return [] }
 
-        // Calculate distances and return nearest 5
         return stations.map { s in
             let d = haversine(lat1: lat, lon1: lon, lat2: s.lat, lon2: s.lng)
             return TideStation(stationId: s.id, name: s.name, lat: s.lat, lng: s.lng, distance: d)
@@ -69,7 +63,6 @@ actor NOAAService {
         .map { $0 }
     }
 
-    /// Get tide predictions (high/low) for a station.
     func getTideHiLo(stationId: String, hours: Int = 48) async throws -> [TidePrediction] {
         let now = Date()
         let end = now.addingTimeInterval(Double(hours) * 3600)
@@ -85,7 +78,6 @@ actor NOAAService {
         return resp.predictions ?? []
     }
 
-    /// Get detailed tide curve (6-minute intervals).
     func getTideCurve(stationId: String, hours: Int = 24) async throws -> [TidePrediction] {
         let now = Date()
         let end = now.addingTimeInterval(Double(hours) * 3600)
@@ -100,8 +92,6 @@ actor NOAAService {
         let resp = try JSONDecoder().decode(TideResponse.self, from: data)
         return resp.predictions ?? []
     }
-
-    // MARK: - Currents
 
     struct CurrentStation: Codable, Identifiable {
         var id: String { stationId }
@@ -118,16 +108,27 @@ actor NOAAService {
     }
 
     struct CurrentPrediction: Codable, Identifiable {
-        var id: String { "\(Time)_\(Velocity_Major)" }
-        let Time: String
-        let Velocity_Major: Double
+        var id: String { "\(time)_\(velocityMajor)" }
+        let time: String
+        let velocityMajor: Double
         let meanFloodDir: Double?
         let meanEbbDir: Double?
-        let Bin: String?
-        let Depth: Double?
-        let Speed: Double?
-        let Direction: Double?
-        let Type: String? // "flood", "ebb", "slack"
+        let bin: String?
+        let depth: Double?
+        let speed: Double?
+        let direction: Double?
+        let currentType: String?
+
+        enum CodingKeys: String, CodingKey {
+            case time = "Time"
+            case velocityMajor = "Velocity_Major"
+            case meanFloodDir, meanEbbDir
+            case bin = "Bin"
+            case depth = "Depth"
+            case speed = "Speed"
+            case direction = "Direction"
+            case currentType = "Type"
+        }
     }
 
     struct CurrentResponse: Codable {
@@ -180,10 +181,8 @@ actor NOAAService {
         return resp.current_predictions?.cp ?? []
     }
 
-    // MARK: - Haversine
-
     private func haversine(lat1: Double, lon1: Double, lat2: Double, lon2: Double) -> Double {
-        let R = 3958.8 // miles
+        let R = 3958.8
         let dLat = (lat2 - lat1) * .pi / 180
         let dLon = (lon2 - lon1) * .pi / 180
         let a = sin(dLat/2) * sin(dLat/2) +

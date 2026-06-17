@@ -87,22 +87,21 @@ struct CurrentsView: View {
         VStack(spacing: 4) {
             ForEach(predictions) { pred in
                 HStack {
-                    // Type indicator
                     ZStack {
                         Circle()
-                            .fill(typeColor(pred.Type))
+                            .fill(typeColor(pred.currentType))
                             .frame(width: 36, height: 36)
-                        Image(systemName: typeIcon(pred.Type))
+                        Image(systemName: typeIcon(pred.currentType))
                             .font(.system(size: 14, weight: .bold))
                             .foregroundStyle(.white)
                     }
 
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(typeLabel(pred.Type))
+                        Text(typeLabel(pred.currentType))
                             .font(.subheadline)
                             .fontWeight(.semibold)
                             .foregroundStyle(Theme.text)
-                        Text(formatTime(pred.Time))
+                        Text(formatTime(pred.time))
                             .font(.caption)
                             .foregroundStyle(Theme.muted)
                     }
@@ -110,11 +109,11 @@ struct CurrentsView: View {
                     Spacer()
 
                     VStack(alignment: .trailing, spacing: 2) {
-                        Text(String(format: "%.1f kts", abs(pred.Velocity_Major)))
+                        Text(String(format: "%.1f kts", abs(pred.velocityMajor)))
                             .font(.title3)
                             .fontWeight(.semibold)
-                            .foregroundStyle(typeColor(pred.Type))
-                        if let dir = pred.Direction {
+                            .foregroundStyle(typeColor(pred.currentType))
+                        if let dir = pred.direction {
                             Text("\(Units.compass(dir)) \(Int(dir))°")
                                 .font(.caption)
                                 .foregroundStyle(Theme.muted)
